@@ -63,7 +63,7 @@ public class MainActivity extends AppCompatActivity {
         previewButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                client.preview(null);
+                client.preview(addrTextView.getText().toString());
             }
         });
         downloadStartButton.setOnClickListener(new View.OnClickListener() {

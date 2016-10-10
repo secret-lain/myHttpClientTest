@@ -31,7 +31,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="textPersonName"
-            android:ems="50"
+            android:ems="100"
             android:id="@+id/addrEditText"
             android:hint="@string/addr_hint" />
 
