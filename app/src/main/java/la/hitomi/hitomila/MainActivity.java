@@ -1,76 +1,90 @@
 package la.hitomi.hitomila;
 
-import android.graphics.Color;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.LinearLayout;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.loopj.android.http.*;
-
-import java.util.Locale;
-
 import cz.msebera.android.httpclient.Header;
-
-import static android.graphics.Color.YELLOW;
+import la.hitomi.hitomila.common.ExternalViewControlCallback;
+import la.hitomi.hitomila.common.hitomiClient;
 
 public class MainActivity extends AppCompatActivity {
-    LinearLayout ll;
+    private ImageView previewImage;
+    private TextView addrTextView;
+    private ProgressBar previewImageLoading;
+
+    private hitomiClient client;
+
+    private Button previewButton;
+    private Button downloadStartButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-            ll = (LinearLayout)findViewById(R.id.test);
+        previewImage = (ImageView) findViewById(R.id.imageView);
+        addrTextView = (TextView) findViewById(R.id.addrEditText);
+        previewButton = (Button) findViewById(R.id.previewButton);
+        downloadStartButton = (Button) findViewById(R.id.downloadButton);
+        previewImageLoading = (ProgressBar) findViewById(R.id.progressBar);
 
-            AsyncHttpClient client = new AsyncHttpClient();
-            client.get("https://httpbin.org/get", new AsyncHttpResponseHandler() {
-                @Override
-                public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
-                    System.out.println(new String(responseBody));
-                }
-                @Override
-            public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable
-                    error)
-            {
+        client = new hitomiClient(new ExternalViewControlCallback() {
+            @Override
+            public void sendMessage(String message, int ToastLength) {
+                Toast.makeText(MainActivity.this , message, ToastLength).show();
+            }
+
+            @Override
+            public void processDone() {
+                previewImageLoading.setVisibility(View.GONE);
+            }
+
+            @Override
+            public void processStart() {
+                if(previewImageLoading.getVisibility() != View.GONE)
+                    previewImageLoading.setVisibility(View.VISIBLE);
+            }
+
+            @Override
+            public void receiveBitmap(Bitmap bitmap) {
+                previewImage.setImageBitmap(bitmap);
+            }
+        });
+
+        previewImageLoading.setVisibility(View.INVISIBLE);
+        previewButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                client.preview(null);
+            }
+        });
+        downloadStartButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //TODO 다운로드 서비스 구현
+            }
+        });
+
+    }
+
+    private void extractPageList(String galleryAddr){
+        client.get("https://httpbin.org/get", new AsyncHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
+                System.out.println(new String(responseBody));
+            }
+            @Override
+            public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error){
                 error.printStackTrace(System.out);
             }
         });
     }
-
-  /*  protected final void debugHeaders(String TAG, Header[] headers) {
-        if (headers != null) {
-            Log.d(TAG, "Return Headers:");
-            StringBuilder builder = new StringBuilder();
-            for (Header h : headers) {
-                String _h = String.format(Locale.US, "%s : %s", h.getName(), h.getValue());
-                Log.d(TAG, _h);
-                builder.append(_h);
-                builder.append("\n");
-            }
-            addView(getColoredView(YELLOW, builder.toString()));
-        }
-    }
-
-    protected final void addView(View v) {
-        ll.addView(v);
-    }
-
-    protected View getColoredView(int bgColor, String msg) {
-        TextView tv = new TextView(this);
-        tv.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
-        tv.setText(msg);
-        tv.setBackgroundColor(bgColor);
-        tv.setPadding(10, 10, 10, 10);
-        tv.setTextColor(getContrastColor(bgColor));
-        return tv;
-    }
-
-    public static int getContrastColor(int color) {
-        double y = (299 * Color.red(color) + 587 * Color.green(color) + 114 * Color.blue(color)) / 1000;
-        return y >= 128 ? Color.BLACK : Color.WHITE;
-    }*/
 }
