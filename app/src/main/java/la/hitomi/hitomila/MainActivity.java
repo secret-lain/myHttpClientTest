@@ -1,9 +1,8 @@
 package la.hitomi.hitomila;
 
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -11,14 +10,14 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.loopj.android.http.*;
-import cz.msebera.android.httpclient.Header;
 import la.hitomi.hitomila.common.ExternalViewControlCallback;
+import la.hitomi.hitomila.common.galleryObject;
 import la.hitomi.hitomila.common.hitomiClient;
 
 public class MainActivity extends AppCompatActivity {
     private ImageView previewImage;
     private TextView addrTextView;
+    private TextView mangaTitleTextView;
     private ProgressBar previewImageLoading;
 
     private hitomiClient client;
@@ -35,6 +34,8 @@ public class MainActivity extends AppCompatActivity {
         previewButton = (Button) findViewById(R.id.previewButton);
         downloadStartButton = (Button) findViewById(R.id.downloadButton);
         previewImageLoading = (ProgressBar) findViewById(R.id.progressBar);
+        mangaTitleTextView = (TextView) findViewById(R.id.mangatitleText);
+
 
         client = new hitomiClient(new ExternalViewControlCallback() {
             @Override
@@ -49,12 +50,20 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void processStart() {
-                if(previewImageLoading.getVisibility() != View.GONE)
-                    previewImageLoading.setVisibility(View.VISIBLE);
+                previewImage.setImageBitmap(null);
+                mangaTitleTextView.setText("");
+                previewImageLoading.setVisibility(View.VISIBLE);
             }
 
             @Override
-            public void receiveBitmap(Bitmap bitmap) {
+            public void onPreviewDataCompleted(galleryObject data) {
+                previewImage.setImageBitmap(data.getThumbnailBitmap());
+                mangaTitleTextView.setText(data.getMangatitle());
+            }
+
+            @Override
+            public void onlyReceiveBitmapForDummy(Bitmap bitmap) {
+                mangaTitleTextView.setText("쿠지락스센세");
                 previewImage.setImageBitmap(bitmap);
             }
         });
@@ -73,18 +82,5 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-    }
-
-    private void extractPageList(String galleryAddr){
-        client.get("https://httpbin.org/get", new AsyncHttpResponseHandler() {
-            @Override
-            public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
-                System.out.println(new String(responseBody));
-            }
-            @Override
-            public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error){
-                error.printStackTrace(System.out);
-            }
-        });
     }
 }

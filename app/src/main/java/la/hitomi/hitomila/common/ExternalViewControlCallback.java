@@ -10,5 +10,6 @@ public interface ExternalViewControlCallback {
     void sendMessage(String message,int ToastLength);
     void processDone();
     void processStart();
-    void receiveBitmap(Bitmap bitmap);
+    void onPreviewDataCompleted(galleryObject data);
+    void onlyReceiveBitmapForDummy(Bitmap bitmap);
 }
