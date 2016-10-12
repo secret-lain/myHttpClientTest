@@ -1,5 +1,8 @@
 package la.hitomi.hitomila;
 
+import android.app.NotificationManager;
+import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -78,9 +81,22 @@ public class MainActivity extends AppCompatActivity {
         downloadStartButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Intent startService = new Intent(MainActivity.this, DownloadService.class);
+                startService.putExtra("threadCount", 5);
+                startService.putExtra("galleryAddress", addrTextView.getText().toString());
+
+                startService(startService);
                 //TODO 다운로드 서비스 구현
             }
         });
 
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        NotificationManager mNotificationManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
+        stopService(new Intent(MainActivity.this, DownloadService.class));
+        mNotificationManager.cancel(1203);
     }
 }
