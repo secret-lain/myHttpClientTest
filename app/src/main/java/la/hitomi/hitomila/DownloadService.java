@@ -10,39 +10,40 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
+import android.widget.Toast;
 
 import com.loopj.android.http.AsyncHttpResponseHandler;
+
+import java.util.HashMap;
 
 import cz.msebera.android.httpclient.Header;
 import la.hitomi.hitomila.common.hitomiClient;
 import la.hitomi.hitomila.common.hitomiParser;
+import la.hitomi.hitomila.common.mangaInformationData;
 
 /**
  * Created by admin on 2016-10-11.
  */
 
 public class DownloadService extends Service{
-    public interface notificationCallback{
-        void notificationUpdate(String title, String content);
-    }
-    notificationCallback notificationCallback = new notificationCallback() {
-        @Override
-        public void notificationUpdate(String title, String content) {
-            notificationUp(title, content);
-        }
-    };
-
     private hitomiClient client;
-    private static int notificationNumber = 1203;
+    private static int initialNotificationNumber = 1203;
     private int currentServiceNotificationNumber;
     private int threadCount;
     private String galleryAddr;
+    private HashMap<Integer, mangaInformationData> dataSet;
     Notification.Builder mBuilder;
+    NotificationManager mNotificationManager;
+
+//    String mangaTitle = "";
+//    int currPageDownloaded = 0;
+//    int maxPages = 0;
 
     @Override
     public void onCreate() {
         super.onCreate();
-        currentServiceNotificationNumber = notificationNumber++;
+        dataSet = new HashMap<>();
+        mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
     }
 
     @Override
@@ -51,14 +52,19 @@ public class DownloadService extends Service{
         threadCount = item.getInt("threadCount");
         galleryAddr = item.getString("galleryAddress");
 
-        initNotification();
+        currentServiceNotificationNumber = initialNotificationNumber;
+        initialNotificationNumber = initialNotificationNumber + 1;
+
         client = new hitomiClient(null);
         client.setMaxConnections(threadCount);
 
+        Toast.makeText(this, "다운로드 시작", Toast.LENGTH_SHORT).show();
+
+        //reader page loading
         client.get(hitomiParser.getAbsoulteReaderAddress(galleryAddr), new AsyncHttpResponseHandler() {
             @Override
             public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
-                client.download(new String(responseBody), galleryAddr, DownloadService.this.getApplicationContext());
+                client.download(new String(responseBody), galleryAddr, DownloadService.this.getApplicationContext(), notificationCallback, currentServiceNotificationNumber);
             }
 
             @Override
@@ -77,7 +83,7 @@ public class DownloadService extends Service{
         return null;
     }
 
-    private void initNotification(){
+    private void _initNotification(mangaInformationData item){
         //notification 클릭시 해당 인텐트가 실행되게 만드는것 같다.
         Intent resultIntent = new Intent(getApplicationContext(), MainActivity.class);
 
@@ -96,17 +102,51 @@ public class DownloadService extends Service{
                 .setOngoing(true)
                 .setStyle(new Notification.BigTextStyle().bigText("BigText"))
                 .setContentIntent(resultPendingIntent)
-                .setContentTitle("Notify")
-                .setContentText("textText");
+                .setContentTitle(item.mangaTitle)
+                .setContentText(item.currDownloadedPages + " / " + item.maxPages);
+
+        mNotificationManager.notify(item.notificationID, mBuilder.build());
     }
 
-    public void notificationUp(String title, String content){
-        mBuilder
-                .setContentTitle(title)
-                .setContentText(content);
 
-        NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        mNotificationManager.notify(currentServiceNotificationNumber, mBuilder.build());
+    public interface notificationCallback{
+        void initNotification(String title, int maxPages, int notificationID);
+        void notifyPageDownloaded(int notificationID);
+        void notifyDownloadCompleted(int notificationID);
     }
+    notificationCallback notificationCallback = new notificationCallback() {
+        @Override
+        public void initNotification(String _title, int _maxPages, int notificationID) {
+            dataSet.put(notificationID, new mangaInformationData(_title, 0, _maxPages, notificationID));
+            _initNotification(dataSet.get(notificationID));
+        }
+
+        @Override
+        public void notifyPageDownloaded(int notificationID) {
+            mangaInformationData item = dataSet.get(notificationID);
+            item.currDownloadedPages += 1;
+            mBuilder
+                    .setContentTitle(item.mangaTitle)
+                    .setContentText(item.currDownloadedPages + " / " + item.maxPages);
+
+            mNotificationManager.notify(item.notificationID, mBuilder.build());
+        }
+
+        @Override
+        public void notifyDownloadCompleted(int notificationID) {
+            mangaInformationData item = dataSet.get(notificationID);
+
+            mBuilder
+                    .setAutoCancel(false)
+                    .setDefaults(Notification.DEFAULT_LIGHTS)
+                    .setPriority(Notification.PRIORITY_LOW)
+                    .setWhen(System.currentTimeMillis())
+                    .setOngoing(false)
+                    .setContentTitle(item.mangaTitle)
+                    .setContentText("Download done - " + item.currDownloadedPages+ " / " + item.maxPages);
+
+            mNotificationManager.notify(item.notificationID, mBuilder.build());
+        }
+    };
 
 }

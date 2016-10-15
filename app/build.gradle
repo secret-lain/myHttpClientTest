@@ -25,6 +25,6 @@ dependencies {
     compile 'com.android.support:appcompat-v7:24.2.1'
     // https://mvnrepository.com/artifact/com.loopj.android/android-async-http
     compile group: 'com.loopj.android', name: 'android-async-http', version: '1.4.9'
-
+    compile 'com.github.ParkSangGwon:TedPermission:v1.0.11'
 
 }

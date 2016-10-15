@@ -1,7 +1,7 @@
 <resources>
-    <string name="app_name">HitomiCrawler</string>
+    <string name="app_name">HitomiDownloader</string>
 
-    <string name="text01">히토미라운로더 ver.Prototype\nhttps://hitomi.la/galleries/[숫자]를넣으세요</string>
+    <string name="text01">히토미라다운로더 ver.Prototype\nhttps://hitomi.la/galleries/[숫자]를넣으세요</string>
     <string name="addr_hint">망가 번호를입력하세요</string>
     <string name="preview_text">프리뷰</string>
     <string name="download_text">다운로드</string>

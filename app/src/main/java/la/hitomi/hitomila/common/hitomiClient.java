@@ -12,6 +12,7 @@ import com.loopj.android.http.BinaryHttpResponseHandler;
 import java.util.Queue;
 
 import cz.msebera.android.httpclient.Header;
+import la.hitomi.hitomila.DownloadService;
 
 /**
  * Created by admin on 2016-10-10.
@@ -19,6 +20,7 @@ import cz.msebera.android.httpclient.Header;
 
 public class hitomiClient extends AsyncHttpClient {
     ExternalViewControlCallback callback;
+    private final String TAG = "hitomiClient";
     private String[] allowedContentTypes = new String[]{"image/png", "image/jpeg", "image/gif"};
 
     public String[] getAllowedContentTypes() {
@@ -30,28 +32,37 @@ public class hitomiClient extends AsyncHttpClient {
     }
 
     //이곳의 responseBody는 Reader Response이다.
-    public void download(String responseBody, String galleryNumber, Context mContext){
+    public void download(String responseBody, String galleryNumber, Context mContext, final DownloadService.notificationCallback callback, final int notificationID){
         final Queue<String> imageList = hitomiParser.extractImageList(responseBody, galleryNumber);
-        final hitomiFileWriter writer = new hitomiFileWriter(mContext);
+        final String mangaTitle = hitomiParser.parseTitleFromReader(responseBody);
+        final hitomiFileWriter writer = new hitomiFileWriter(mContext, mangaTitle);
 
+
+        callback.initNotification(mangaTitle, imageList.size(), notificationID);
         //최초에 maxConnection 만큼 get request를 일단 던진다. 그 이후에는 재귀적호출. (계속 max유지)
         for(int i = 0 ; i < getMaxConnections() ; i++){
             get(imageList.poll() , new BinaryHttpResponseHandler(allowedContentTypes) {
                 @Override
                 public void onSuccess(int statusCode, Header[] headers, byte[] binaryData) {
-                    Log.d("hitomiClient::download", this.getRequestURI().toString() + " download completed");
+                    Log.d(TAG+"::download", this.getRequestURI().toString() + " download completed");
                     String fileName = hitomiParser.getImageNameFromRequestURI(this.getRequestURI().toString());
-                    writer.writeImage(fileName,binaryData);
+                    if(writer.writeImage(fileName,binaryData))
+                        callback.notifyPageDownloaded(notificationID);
 
-                    //TODO FileWriter
                     if(!imageList.isEmpty()){
-                        get(imageList.poll(), this);
-                    }
+                        try {
+                            Thread.sleep(500);
+                            get(imageList.poll(), this);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    } else callback.notifyDownloadCompleted(notificationID);
                 }
 
                 @Override
                 public void onFailure(int statusCode, Header[] headers, byte[] binaryData, Throwable error) {
-                    Log.d("hitomiClient::download", this.getRequestURI().toString() + " download FAILED");
+                    Log.d(TAG+"::download", this.getRequestURI().toString() + " download FAILED\n" +
+                            "statusCode : " + statusCode + ", error : " + error.getMessage());
                 }
             });
         }
@@ -92,13 +103,13 @@ public class hitomiClient extends AsyncHttpClient {
                 }
                 //갤러리 정보 제대로 불러왔을 경우 (Warning이 아닌 경우)
                 else {
-                    Log.d("hitomiClient", "onSuccess(reached gallery page) StatusCode:" + statusCode);
+                    Log.d(TAG+"::preview", "onSuccess(reached gallery page) StatusCode:" + statusCode);
                     final galleryObject galleryVO = hitomiParser.parsePreviewObject(responseString);
                     get(galleryVO.getThumbnailAddr(), new BinaryHttpResponseHandler(allowedContentTypes) {
                         @Override
                         public void onSuccess(int statusCode, Header[] headers, byte[] binaryData) {
                             //섬네일 데이터 불러오기 성공
-                            Log.d("hitomiClient", "onSuccess(reached thumbnailImage download) StatusCode:" + statusCode);
+                            Log.d(TAG+"::download","onSuccess(reached thumbnailImage download) StatusCode:" + statusCode);
                             galleryVO.setThumbnailBitmap(BitmapFactory.decodeByteArray(binaryData, 0, binaryData.length));
                             if (galleryVO.isCompleted()) {
                                 callback.onPreviewDataCompleted(galleryVO);

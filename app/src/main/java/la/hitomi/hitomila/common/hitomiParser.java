@@ -95,4 +95,30 @@ public class hitomiParser {
         }
         return null;
     }
+
+    public static String parseTitleFromReader(String responseBody) {
+        String extractImageNameRegex = "(?:<title>)([^|]*)";
+        Pattern pattern = Pattern.compile(extractImageNameRegex);
+        Matcher match = pattern.matcher(responseBody);
+
+        if(match.find()){
+            return match.group(1);
+        }
+        return null;
+    }
+
+    public static String parseFileNameToTwoDigits(String filename){
+        if(isOneDigit(filename))
+                return "0" + filename;
+        return filename;
+    }
+    private static boolean isOneDigit(String filename){
+        String extractImageNameRegex = "[^\\.]*";
+        Pattern pattern = Pattern.compile(extractImageNameRegex);
+        Matcher match = pattern.matcher(filename);
+
+        if(match.find())
+            if(match.group(0).length() == 1) return true;
+        return false;
+    }
 }

@@ -1,5 +1,6 @@
 package la.hitomi.hitomila;
 
+import android.Manifest;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
@@ -12,6 +13,11 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.gun0912.tedpermission.PermissionListener;
+import com.gun0912.tedpermission.TedPermission;
+
+import java.util.ArrayList;
 
 import la.hitomi.hitomila.common.ExternalViewControlCallback;
 import la.hitomi.hitomila.common.galleryObject;
@@ -30,6 +36,23 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        new TedPermission(this)
+                .setPermissionListener(new PermissionListener() {
+                    @Override
+                    public void onPermissionGranted() {
+                        return;
+                    }
+
+                    @Override
+                    public void onPermissionDenied(ArrayList<String> arrayList) {
+                        Toast.makeText(MainActivity.this, "권한거부됨\n" + arrayList.toString(), Toast.LENGTH_LONG).show();
+                    }
+                })
+                .setRationaleMessage("인터넷, 파일접근권한이 필요함. 닥치고 오케이를 해")
+                .setDeniedMessage("거부시 [설정] > [앱 권한] 에서 따로 허용이 가능.")
+                .setPermissions(Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.INTERNET)
+                .check();
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         previewImage = (ImageView) findViewById(R.id.imageView);
@@ -82,7 +105,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent startService = new Intent(MainActivity.this, DownloadService.class);
-                startService.putExtra("threadCount", 5);
+                startService.putExtra("threadCount", 1);
                 startService.putExtra("galleryAddress", addrTextView.getText().toString());
 
                 startService(startService);
@@ -97,6 +120,6 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
         NotificationManager mNotificationManager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
         stopService(new Intent(MainActivity.this, DownloadService.class));
-        mNotificationManager.cancel(1203);
+        mNotificationManager.cancelAll();
     }
 }
