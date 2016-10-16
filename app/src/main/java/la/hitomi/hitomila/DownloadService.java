@@ -7,13 +7,16 @@ import android.app.Service;
 import android.app.TaskStackBuilder;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.widget.Toast;
 
 import com.loopj.android.http.AsyncHttpResponseHandler;
 
+import java.io.File;
 import java.util.HashMap;
 
 import cz.msebera.android.httpclient.Header;
@@ -87,9 +90,21 @@ public class DownloadService extends Service{
         //notification 클릭시 해당 인텐트가 실행되게 만드는것 같다.
         Intent resultIntent = new Intent(getApplicationContext(), MainActivity.class);
 
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        File root = new File(Environment.getExternalStorageDirectory().getPath() + "/hitomi/" + item.mangaTitle + "//");
+        Uri uri = Uri.fromFile(root);
+        intent.setAction(Intent.ACTION_VIEW);
+//        intent.addCategory(Intent.CATEGORY_OPENABLE);
+//        intent.setAction(Intent.ACTION_GET_CONTENT);
+        intent.setDataAndType(uri, "resource/folder");
+
         TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
         stackBuilder.addParentStack(MainActivity.class);
-        stackBuilder.addNextIntent(resultIntent);
+        stackBuilder.addNextIntent(intent);
+
+
+
+        PendingIntent contentIntent = PendingIntent.getActivity(DownloadService.this.getApplicationContext(), 0, intent, 0);
 
         PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
 
@@ -100,7 +115,7 @@ public class DownloadService extends Service{
                 .setPriority(Notification.PRIORITY_MAX)
                 .setWhen(System.currentTimeMillis())
                 .setOngoing(true)
-                .setStyle(new Notification.BigTextStyle().bigText("BigText"))
+                //.setStyle(new Notification.BigTextStyle().bigText("BigText"))
                 .setContentIntent(resultPendingIntent)
                 .setContentTitle(item.mangaTitle)
                 .setContentText(item.currDownloadedPages + " / " + item.maxPages);

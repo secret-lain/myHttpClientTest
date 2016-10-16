@@ -17,11 +17,15 @@ public class hitomiFileWriter {
     private Context parentContext;
     private String filePath;
 
-        public hitomiFileWriter(Context mContext, String directoryName){
-            parentContext = mContext;
-            filePath = Environment.getExternalStorageDirectory().getPath() + "/hitomi/" + directoryName;
-            directoryWrite(directoryName);
-        }
+    public String getFilePath(){
+        return filePath;
+    }
+
+    public hitomiFileWriter(Context mContext, String directoryName){
+        parentContext = mContext;
+        filePath = Environment.getExternalStorageDirectory().getPath() + "/hitomi/" + directoryName;
+        directoryWrite(directoryName);
+    }
 
     private void directoryWrite(String directoryName){
         File directory = new File(filePath);

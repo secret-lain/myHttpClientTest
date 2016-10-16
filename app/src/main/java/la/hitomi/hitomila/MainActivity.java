@@ -105,7 +105,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent startService = new Intent(MainActivity.this, DownloadService.class);
-                startService.putExtra("threadCount", 1);
+                startService.putExtra("threadCount", 2);
                 startService.putExtra("galleryAddress", addrTextView.getText().toString());
 
                 startService(startService);

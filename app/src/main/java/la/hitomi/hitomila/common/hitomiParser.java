@@ -42,7 +42,7 @@ public class hitomiParser {
 
     //고정값에 대해서는 https://hitomi.la/reader.js
     public static Queue<String> extractImageList(String responseBody, String galleryNumber){
-        int numberOfFrontEnds = 7; // 알수없는 고정값. 나중에 변경을 대비해 따로 받아오는게 좋을듯
+        int numberOfFrontEnds = 6; // 알수없는 고정값. 나중에 변경을 대비해 따로 받아오는게 좋을듯
         String titleSearchRegex = "(?:<div class=\"img-url\">)(.*)(?:</div>)";
         Pattern pattern = Pattern.compile(titleSearchRegex);
         Matcher match = pattern.matcher(responseBody);
@@ -50,7 +50,8 @@ public class hitomiParser {
         Queue<String> result = new LinkedList<>();
 
         char a = (char) (97 + (Integer.parseInt(galleryNumber)) % numberOfFrontEnds);
-        String prefix = "l" + String.valueOf(a); // l은 미국, 한국 데이터의 접두사.
+        //String prefix = "l" + String.valueOf(a); // l은 미국, 한국 데이터의 접두사.
+        String prefix = "b";
         while(match.find()){
             String data = match.group(1);
             data = Pattern.compile("//.\\.hitomi\\.la/")
