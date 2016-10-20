@@ -84,10 +84,11 @@ public class hitomiClient extends AsyncHttpClient {
         return true;
     }
 
-    public void preview(String galleryAddr) {
+    public boolean preview(String galleryAddr) {
         if (checkAddrVaild(galleryAddr) == false || callback == null)
-            return;
+            return false;
 
+        final boolean[] resultChecker = {false};
         String completeAddress = hitomiParser.getAbsoluteGalleryAddress(galleryAddr);
         callback.processStart();
         get(completeAddress, new AsyncHttpResponseHandler() {
@@ -115,6 +116,7 @@ public class hitomiClient extends AsyncHttpClient {
                                 callback.onPreviewDataCompleted(galleryVO);
                                 callback.processDone();
                             } else throw new RuntimeException("아 몰랑");
+                            resultChecker[0] = true;
                         }
 
                         @Override
@@ -142,6 +144,7 @@ public class hitomiClient extends AsyncHttpClient {
                 error.printStackTrace();
             }
         });
+        return resultChecker[0];
     }
 
     private void dummyPreview() {

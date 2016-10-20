@@ -104,12 +104,13 @@ public class MainActivity extends AppCompatActivity {
         downloadStartButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                //TODO 다운로드버튼을 누르면 프리뷰도 바로 되게끔 만들어보는것은?
+
                 Intent startService = new Intent(MainActivity.this, DownloadService.class);
                 startService.putExtra("threadCount", 2);
                 startService.putExtra("galleryAddress", addrTextView.getText().toString());
 
                 startService(startService);
-                //TODO 다운로드 서비스 구현
             }
         });
 

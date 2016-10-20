@@ -88,7 +88,6 @@ public class DownloadService extends Service{
 
     private void _initNotification(mangaInformationData item){
         //notification 클릭시 해당 인텐트가 실행되게 만드는것 같다.
-        Intent resultIntent = new Intent(getApplicationContext(), MainActivity.class);
 
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         File root = new File(Environment.getExternalStorageDirectory().getPath() + "/hitomi/" + item.mangaTitle + "//");
@@ -102,11 +101,8 @@ public class DownloadService extends Service{
         stackBuilder.addParentStack(MainActivity.class);
         stackBuilder.addNextIntent(intent);
 
-
-
-        PendingIntent contentIntent = PendingIntent.getActivity(DownloadService.this.getApplicationContext(), 0, intent, 0);
-
-        PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+        PendingIntent resultPendingIntent = stackBuilder.getPendingIntent(item.notificationID, PendingIntent.FLAG_UPDATE_CURRENT);
+        item.fileLocationPendingIntent = resultPendingIntent;
 
         mBuilder = new Notification.Builder(this)
                 .setSmallIcon(R.drawable.hitomi_32x32)
@@ -141,6 +137,7 @@ public class DownloadService extends Service{
             mangaInformationData item = dataSet.get(notificationID);
             item.currDownloadedPages += 1;
             mBuilder
+                    //.setContentIntent(item.fileLocationPendingIntent)
                     .setContentTitle(item.mangaTitle)
                     .setContentText(item.currDownloadedPages + " / " + item.maxPages);
 
@@ -156,6 +153,7 @@ public class DownloadService extends Service{
                     .setDefaults(Notification.DEFAULT_LIGHTS)
                     .setPriority(Notification.PRIORITY_LOW)
                     .setWhen(System.currentTimeMillis())
+                    //.setContentIntent(item.fileLocationPendingIntent)
                     .setOngoing(false)
                     .setContentTitle(item.mangaTitle)
                     .setContentText("Download done - " + item.currDownloadedPages+ " / " + item.maxPages);

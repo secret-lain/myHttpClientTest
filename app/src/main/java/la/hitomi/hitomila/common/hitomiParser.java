@@ -51,7 +51,7 @@ public class hitomiParser {
 
         char a = (char) (97 + (Integer.parseInt(galleryNumber)) % numberOfFrontEnds);
         //String prefix = "l" + String.valueOf(a); // l은 미국, 한국 데이터의 접두사.
-        String prefix = "b";
+        String prefix = "ba";
         while(match.find()){
             String data = match.group(1);
             data = Pattern.compile("//.\\.hitomi\\.la/")
