@@ -124,7 +124,7 @@ public class hitomiParser {
     }
 
     public static String extractGalleryNumberFromAddress(String addr){
-        if(!addr.contains("hitomi"))
+        if(addr == null || !addr.contains("hitomi"))
             return null;
 
         String extractAddrRegex = "([\\d+]{0,7})(?:.html)";

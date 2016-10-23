@@ -47,6 +47,7 @@ public class hitomiClient extends AsyncHttpClient {
 
         callback.initNotification(mangaTitle, imageList.size(), notificationID);
         //최초에 maxConnection 만큼 get request를 일단 던진다. 그 이후에는 재귀적호출. (계속 max유지)
+        final int[] completedSemaphore = {getMaxConnections()};
         for(int i = 0 ; i < getMaxConnections() ; i++){
             get(imageList.poll() , new BinaryHttpResponseHandler(allowedContentTypes) {
                 @Override
@@ -64,7 +65,11 @@ public class hitomiClient extends AsyncHttpClient {
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
-                    } else callback.notifyDownloadCompleted(notificationID);
+                    } else{
+                        //3개의 커넥션 중 마지막 결과값만 notifyCompleted하기 위함
+                        if(--completedSemaphore[0] <= 0)
+                            callback.notifyDownloadCompleted(notificationID);
+                    }
                 }
 
                 @Override

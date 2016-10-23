@@ -2,6 +2,7 @@ package la.hitomi.hitomila;
 
 import android.Manifest;
 import android.app.NotificationManager;
+import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
@@ -110,7 +111,7 @@ public class MainActivity extends AppCompatActivity {
                 //TODO 다운로드버튼을 누르면 프리뷰도 바로 되게끔 만들어보는것은?
 
                 Intent startService = new Intent(MainActivity.this, DownloadService.class);
-                startService.putExtra("threadCount", 2);
+                startService.putExtra("threadCount", 3);
                 startService.putExtra("galleryAddress", addrTextView.getText().toString());
 
                 startService(startService);
@@ -120,13 +121,26 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-                String pastedString = clipboard.getPrimaryClip().getItemAt(0).getText().toString();
-                String extractedAddrNumber = hitomiParser.extractGalleryNumberFromAddress(pastedString);
-                if(extractedAddrNumber == null)
-                    Toast.makeText(MainActivity.this, "클립보드 내 텍스트 형식이 맞지않습니다", Toast.LENGTH_SHORT).show();
-                else{
-                    addrTextView.setText(extractedAddrNumber);
+                ClipData data = clipboard.getPrimaryClip();
+
+                //클립보드에 데이터가 있는 경우
+                if(data.getItemCount() != 0){
+                    String pastedString = data.getItemAt(0).getText().toString();
+                    String extractedAddrNumber = hitomiParser.extractGalleryNumberFromAddress(pastedString);
+
+                    //추출한 데이터가 hitomi 주소가 아니거나 기타 문제가 있는 경우
+                    if(extractedAddrNumber == null)
+                        Toast.makeText(MainActivity.this, "클립보드 내 텍스트 형식이 맞지않습니다", Toast.LENGTH_SHORT).show();
+                    else{
+                        //문제 없이 추출된 경우
+                        addrTextView.setText(extractedAddrNumber);
+                    }
                 }
+                //클립보드에 데이터가 없는 경우(앱 실행 후 클립보드 내 복사된 자료 없음 - 기종따라다름)
+                else{
+                    Toast.makeText(MainActivity.this, "복사된 주소가 확인되지 않았습니다", Toast.LENGTH_SHORT).show();
+                }
+
             }
         });
 
