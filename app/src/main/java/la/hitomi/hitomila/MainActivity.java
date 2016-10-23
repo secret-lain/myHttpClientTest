@@ -2,6 +2,7 @@ package la.hitomi.hitomila;
 
 import android.Manifest;
 import android.app.NotificationManager;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -22,6 +23,7 @@ import java.util.ArrayList;
 import la.hitomi.hitomila.common.ExternalViewControlCallback;
 import la.hitomi.hitomila.common.galleryObject;
 import la.hitomi.hitomila.common.hitomiClient;
+import la.hitomi.hitomila.common.hitomiParser;
 
 public class MainActivity extends AppCompatActivity {
     private ImageView previewImage;
@@ -33,6 +35,7 @@ public class MainActivity extends AppCompatActivity {
 
     private Button previewButton;
     private Button downloadStartButton;
+    private Button pasteButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,7 +64,7 @@ public class MainActivity extends AppCompatActivity {
         downloadStartButton = (Button) findViewById(R.id.downloadButton);
         previewImageLoading = (ProgressBar) findViewById(R.id.progressBar);
         mangaTitleTextView = (TextView) findViewById(R.id.mangatitleText);
-
+        pasteButton = (Button) findViewById(R.id.pasteButton);
 
         client = new hitomiClient(new ExternalViewControlCallback() {
             @Override
@@ -111,6 +114,19 @@ public class MainActivity extends AppCompatActivity {
                 startService.putExtra("galleryAddress", addrTextView.getText().toString());
 
                 startService(startService);
+            }
+        });
+        pasteButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                String pastedString = clipboard.getPrimaryClip().getItemAt(0).getText().toString();
+                String extractedAddrNumber = hitomiParser.extractGalleryNumberFromAddress(pastedString);
+                if(extractedAddrNumber == null)
+                    Toast.makeText(MainActivity.this, "클립보드 내 텍스트 형식이 맞지않습니다", Toast.LENGTH_SHORT).show();
+                else{
+                    addrTextView.setText(extractedAddrNumber);
+                }
             }
         });
 

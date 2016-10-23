@@ -50,6 +50,12 @@ public class DownloadService extends Service{
     }
 
     @Override
+    public void onDestroy() {
+        client.interrupt();
+        super.onDestroy();
+    }
+
+    @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Bundle item = intent.getExtras();
         threadCount = item.getInt("threadCount");
@@ -79,6 +85,7 @@ public class DownloadService extends Service{
 
         return super.onStartCommand(intent, flags, startId);
     }
+
 
     @Nullable
     @Override
@@ -153,7 +160,6 @@ public class DownloadService extends Service{
                     .setDefaults(Notification.DEFAULT_LIGHTS)
                     .setPriority(Notification.PRIORITY_LOW)
                     .setWhen(System.currentTimeMillis())
-                    //.setContentIntent(item.fileLocationPendingIntent)
                     .setOngoing(false)
                     .setContentTitle(item.mangaTitle)
                     .setContentText("Download done - " + item.currDownloadedPages+ " / " + item.maxPages);

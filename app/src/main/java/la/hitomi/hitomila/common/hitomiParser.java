@@ -122,4 +122,18 @@ public class hitomiParser {
             if(match.group(0).length() == 1) return true;
         return false;
     }
+
+    public static String extractGalleryNumberFromAddress(String addr){
+        if(!addr.contains("hitomi"))
+            return null;
+
+        String extractAddrRegex = "([\\d+]{0,7})(?:.html)";
+        Pattern pattern = Pattern.compile(extractAddrRegex);
+        Matcher match = pattern.matcher(addr);
+        if(match.find()){
+            return match.group(1);
+        }
+        else
+            return null;
+    }
 }

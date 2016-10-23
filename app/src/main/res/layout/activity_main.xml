@@ -46,14 +46,22 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:id="@+id/previewButton"
-                android:layout_weight="0.5" />
+                android:layout_weight="0.33" />
+
+            <Button
+                android:text="@string/paste_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/pasteButton"
+                android:layout_weight="0.33" />
 
             <Button
                 android:text="@string/download_text"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:id="@+id/downloadButton"
-                android:layout_weight="0.5" />
+                android:layout_weight="0.33" />
+
         </LinearLayout>
 
         <TextView

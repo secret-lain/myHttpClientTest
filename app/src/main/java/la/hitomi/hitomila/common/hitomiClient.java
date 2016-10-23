@@ -22,13 +22,19 @@ public class hitomiClient extends AsyncHttpClient {
     ExternalViewControlCallback callback;
     private final String TAG = "hitomiClient";
     private String[] allowedContentTypes = new String[]{"image/png", "image/jpeg", "image/gif"};
+    private boolean isInterrupted;
 
     public String[] getAllowedContentTypes() {
         return allowedContentTypes;
     }
 
     public hitomiClient(ExternalViewControlCallback callback) {
+        isInterrupted = false;
         this.callback = callback;
+    }
+
+    public void interrupt(){
+        isInterrupted = true;
     }
 
     //이곳의 responseBody는 Reader Response이다.
@@ -36,7 +42,8 @@ public class hitomiClient extends AsyncHttpClient {
         final Queue<String> imageList = hitomiParser.extractImageList(responseBody, galleryNumber);
         final String mangaTitle = hitomiParser.parseTitleFromReader(responseBody);
         final hitomiFileWriter writer = new hitomiFileWriter(mContext, mangaTitle);
-
+        if(isInterrupted == true)
+            isInterrupted = false;
 
         callback.initNotification(mangaTitle, imageList.size(), notificationID);
         //최초에 maxConnection 만큼 get request를 일단 던진다. 그 이후에는 재귀적호출. (계속 max유지)
@@ -46,13 +53,14 @@ public class hitomiClient extends AsyncHttpClient {
                 public void onSuccess(int statusCode, Header[] headers, byte[] binaryData) {
                     Log.d(TAG+"::download", this.getRequestURI().toString() + " download completed");
                     String fileName = hitomiParser.getImageNameFromRequestURI(this.getRequestURI().toString());
-                    if(writer.writeImage(fileName,binaryData))
+                    if(!isInterrupted && writer.writeImage(fileName,binaryData))
                         callback.notifyPageDownloaded(notificationID);
 
                     if(!imageList.isEmpty()){
                         try {
                             Thread.sleep(500);
-                            get(imageList.poll(), this);
+                            if(!isInterrupted)
+                                get(imageList.poll(), this);
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
